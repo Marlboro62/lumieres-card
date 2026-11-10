@@ -39,7 +39,7 @@
 - **Blanc et couleur** : le bouton 🎨 ouvre un curseur blanc chaud ↔ froid et dix couleurs, selon ce que permet l'ampoule.
 - **Scènes** : vos scènes Home Assistant en boutons, en un clic.
 - La couleur de chaque ampoule allumée teinte son icône, son curseur et sa ligne.
-- **Deux affichages** : en **liste** (curseurs et couleurs directement dans la carte) ou en **boutons** (une tuile par lumière : un appui allume ou éteint, un appui long ouvre la fiche avec luminosité et couleur).
+- **Deux affichages** : en **liste** (curseurs et couleurs directement dans la carte) ou en **boutons** (une tuile par lumière, avec son curseur de luminosité en dessous : un appui allume ou éteint, un appui long ouvre la fiche avec la couleur).
 - **Aucune dépendance** : pas de button-card ni de card-mod. Éditeur visuel compris.
 - **Français, anglais et polonais** (langue de Home Assistant, ou au choix).
 
@@ -83,7 +83,8 @@ C'est tout : la carte trouve vos lumières et leurs pièces. Elle est aussi dans
 | Clic sur le nom d'une autre lumière | Fiche de Home Assistant |
 | Clic sur le nom d'une pièce | Replier ou déplier la pièce (mémorisé dans le navigateur) |
 | Affichage en boutons : appui | Allumer ou éteindre |
-| Affichage en boutons : appui long | Fiche de Home Assistant (luminosité, couleur) |
+| Affichage en boutons : curseur sous la tuile | Luminosité |
+| Affichage en boutons : appui long | Fiche de Home Assistant (couleur, blanc) |
 
 ### Options
 

@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.3";
+const CARD_VERSION = "0.1.0-beta.4";
 
 const DEFAULTS = {
   title: "",
@@ -183,6 +183,7 @@ class LumieresCard extends HTMLElement {
     const root = this.shadowRoot;
     root.addEventListener("click", (ev) => {
       if (this._held) { this._held = false; ev.stopPropagation(); return; } // appui long : la fiche est déjà ouverte
+      if (ev.target.matches?.("input[type=range]")) return; // curseur dans un bouton : pas de bascule
       const el = ev.target.closest?.("[data-act]");
       if (!el) return;
       const { act, id } = el.dataset;
@@ -205,7 +206,7 @@ class LumieresCard extends HTMLElement {
       if (!r.matches?.("input[type=range]")) return;
       this._dragging = true;
       r.style.setProperty("--p", `${this._pct(r)}%`);
-      const out = r.closest(".lc-slider")?.querySelector("output");
+      const out = r.closest(".lc-slider")?.querySelector("output") || r.closest(".lc-bt")?.querySelector("span");
       if (out && r.dataset.kind === "bri") out.textContent = `${r.value} %`;
     });
     root.addEventListener("change", (ev) => {
@@ -221,7 +222,7 @@ class LumieresCard extends HTMLElement {
       clearTimeout(this._holdTimer);
       this._held = false;
       const el = ev.target.closest?.("[data-hold]");
-      if (el) this._holdTimer = setTimeout(() => { this._held = true; this._moreInfo(el.dataset.hold); }, 550);
+      if (el && !ev.target.matches?.("input[type=range]")) this._holdTimer = setTimeout(() => { this._held = true; this._moreInfo(el.dataset.hold); }, 550);
     });
     for (const t of ["pointerup", "pointercancel", "pointerleave"]) root.addEventListener(t, () => clearTimeout(this._holdTimer), true);
     root.addEventListener("contextmenu", (ev) => { if (ev.target.closest?.("[data-hold]")) ev.preventDefault(); });
@@ -416,6 +417,7 @@ class LumieresCard extends HTMLElement {
       <ha-icon icon="${esc(icon)}"></ha-icon>
       <b>${esc(this._name(id))}</b>
       <span>${esc(state)}</span>
+      ${on && dimmable ? `<input class="lc-bt-r" type="range" min="1" max="100" step="1" value="${pct}" data-kind="bri" data-id="${esc(id)}" aria-label="${esc(T.brightness)}">` : ""}
     </div>`;
   }
 
@@ -570,6 +572,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 ha-card.light .lc-bt.on ha-icon, ha-card.th-ha.light .lc-bt.on ha-icon { filter: none; }
 .lc-bt.on span { color: var(--ink); }
 .lc-bt.na { cursor: default; }
+.lc-bt .lc-bt-r { width: 100%; flex: none; margin-top: 2px; touch-action: pan-y; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>`;
 
