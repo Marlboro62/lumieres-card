@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.5";
+const CARD_VERSION = "0.1.0-beta.6";
 
 const DEFAULTS = {
   title: "",
@@ -90,10 +90,13 @@ const fold = (w) => w.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCa
 const shortName = (name, area, kinds) => {
   const words = String(name).split(/\s+/).filter(Boolean);
   const keep = words.map(() => true);
-  const areaW = String(area || "").split(/\s+/).map(fold).filter(Boolean);
-  if (areaW.length) {
+  // la pièce entière, puis chacune de ses parties (« Salle de bain & WC » → « Salle de bain », « WC »)
+  const areas = [String(area || ""), ...String(area || "").split(/\s*(?:&|\/|\+|,|\bet\b|\band\b|\bi\b)\s*/i)];
+  for (const part of areas) {
+    const areaW = part.split(/\s+/).map(fold).filter(Boolean);
+    if (!areaW.length) continue;
     for (let i = 0; i + areaW.length <= words.length; i++) {
-      if (areaW.every((a, j) => fold(words[i + j]) === a)) for (let j = 0; j < areaW.length; j++) keep[i + j] = false;
+      if (areaW.every((a, j) => keep[i + j] && fold(words[i + j]) === a)) for (let j = 0; j < areaW.length; j++) keep[i + j] = false;
     }
   }
   words.forEach((w, i) => { if (kinds.has(fold(w))) keep[i] = false; });
@@ -378,7 +381,9 @@ class LumieresCard extends HTMLElement {
     if (!ids.length) {
       body = `<div class="empty"><b>${esc(T.none)}</b><span>${esc(T.none_hint)}</span></div>`;
     } else {
-      body = rooms.map((r) => this._room(r)).filter(Boolean).join("");
+      // une seule pièce : pas de cadre de pièce, le titre de la carte suffit
+      const filled = rooms.filter((r) => c.show_off || r.ids.some((id) => this._hass.states[id].state === "on"));
+      body = filled.length === 1 ? this._room(filled[0], true) : rooms.map((r) => this._room(r)).filter(Boolean).join("");
     }
     const sc = scenes.length ? `<div class="lc-scenes" role="group" aria-label="${esc(T.scenes)}">${scenes.map((id) => {
       const s = this._hass.states[id];
@@ -389,13 +394,18 @@ class LumieresCard extends HTMLElement {
     for (const r of this.shadowRoot.querySelectorAll("input[type=range]")) r.style.setProperty("--p", `${this._pct(r)}%`);
   }
 
-  _room(r) {
+  _room(r, solo = false) {
     const T = this._t(), c = this._config;
     const on = r.ids.filter((id) => this._hass.states[id].state === "on");
     const shown = c.show_off ? r.ids : on;
     const key = r.area || "_other";
-    const closed = this._collapsed.has(key);
     if (!shown.length && !c.show_off) return "";
+    if (solo) {
+      return c.layout === "buttons"
+        ? `<div class="lc-grid lc-solo">${shown.map((id) => this._tile(id)).join("")}</div>`
+        : `<div class="lc-list lc-solo">${shown.map((id) => this._light(id)).join("")}</div>`;
+    }
+    const closed = this._collapsed.has(key);
     return `<section class="lc-room${on.length ? " on" : ""}">
       <div class="lc-rh">
         <div class="lc-rt" data-act="room" data-id="${esc(key)}" role="button" tabindex="0" aria-expanded="${!closed}" title="${esc(T.collapse)}">
@@ -568,6 +578,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 .lc-link ha-icon { --mdc-icon-size: 16px; }
 .empty { display: flex; flex-direction: column; gap: 6px; padding: 8px 4px 4px; font-size: .88rem; }
 .empty span { color: var(--med-muted); }
+.lc-solo { margin-top: 0; }
 .lc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; margin-top: 6px; }
 .lc-bt { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; min-height: 96px;
   padding: 12px 8px; border-radius: 14px; border: 1px solid var(--med-line); cursor: pointer; user-select: none; -webkit-user-select: none;

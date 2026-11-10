@@ -123,7 +123,8 @@ scenes:
 
 - Les lumières **masquées** dans Home Assistant et celles qui servent de réglage (catégorie « configuration » ou « diagnostic ») ne sont pas affichées.
 - Une lumière sans pièce apparaît dans **Autres lumières**, en bas de la carte.
-- Les noms sont raccourcis : le nom de la pièce et le mot « Lumière » sont retirés (« Lumière Salon Centre » devient « Centre » dans la pièce Salon). Si rien ne reste, le nom complet est gardé.
+- Une carte limitée à **une seule pièce** (`areas`) n'affiche pas le cadre de la pièce : les lumières sont directement sous le titre. Pratique pour une carte par pièce, avec `title`.
+- Les noms sont raccourcis : le nom de la pièce (ou une de ses parties : « Salle de bain & WC ») et le mot « Lumière » sont retirés (« Lumière Salon Centre » devient « Centre » dans la pièce Salon). Si rien ne reste, le nom complet est gardé.
 - Un **groupe de lumières** apparaît comme une lumière ; masquez avec `exclude` le groupe ou ses membres pour éviter les doublons.
 
 ## Historique des versions
