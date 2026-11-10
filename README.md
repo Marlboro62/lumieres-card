@@ -29,7 +29,7 @@
 # Carte Lumières
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
-[![Release](https://img.shields.io/github/v/release/Marlboro62/lumieres-card?include_prereleases)](https://github.com/Marlboro62/lumieres-card/releases)
+[![Release](https://img.shields.io/github/v/release/Marlboro62/lumieres-card)](https://github.com/Marlboro62/lumieres-card/releases)
 
 **Toutes vos lumières, rangées par pièce**, dans une carte Lovelace au style des cartes MyElectricalData new ([Carte Enedis Linky New](https://github.com/Marlboro62/content-card-linky-new)), des [Cartes Serveur HA](https://github.com/Marlboro62/serveur-ha-card) et des [Cartes Imprimantes](https://github.com/Marlboro62/printers) : thème bleu nuit, version claire, ou thème Home Assistant.
 
@@ -133,6 +133,9 @@ scenes:
 ### 0.1.0
 
 - ✨ Première version : lumières par pièce, tout éteindre, luminosité directe, blanc et couleurs, scènes, thèmes bleu nuit, clair et Home Assistant, français, anglais et polonais.
+- ✨ Affichage en **boutons** (`layout: buttons`) avec le curseur de luminosité sous chaque tuile, appui long pour la fiche.
+- ✨ Noms courts (sans la pièce ni « Lumière »), une seule pièce sans cadre, option `show_header` pour poser la carte sous une autre, pleine largeur dans les sections.
+- 🐛 Éditeur visuel : libellés courts et valeurs par défaut indiquées sous les champs.
 
 Détail de chaque version : [releases](https://github.com/Marlboro62/lumieres-card/releases).
 

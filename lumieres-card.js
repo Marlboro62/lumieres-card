@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.9";
+const CARD_VERSION = "0.1.0";
 
 const DEFAULTS = {
   title: "",
