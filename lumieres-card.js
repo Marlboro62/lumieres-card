@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.4";
+const CARD_VERSION = "0.1.0-beta.5";
 
 const DEFAULTS = {
   title: "",
@@ -62,6 +62,17 @@ const EDITOR_LABELS = {
     layout: "Układ", show_off: "Pokaż wyłączone światła", show_scenes: "Pokaż sceny", scenes: "Sceny (wszystkie, jeśli puste)",
     max_scenes: "Maksymalna liczba scen", theme: "Kolory karty", language: "Język" },
 };
+
+const EDITOR_HELP = {
+  fr: { layout: "Par défaut : liste. Boutons : appui pour allumer ou éteindre, curseur dessous, appui long pour la couleur.",
+    theme: "Par défaut : bleu nuit.", language: "Par défaut : langue de Home Assistant.", max_scenes: "8 par défaut." },
+  en: { layout: "Default: list. Buttons: tap to turn on or off, slider below, long press for colour.",
+    theme: "Default: night blue.", language: "Default: Home Assistant language.", max_scenes: "8 by default." },
+  pl: { layout: "Domyślnie: lista. Przyciski: dotknij, aby włączyć lub wyłączyć, suwak poniżej, przytrzymaj dla koloru.",
+    theme: "Domyślnie: granatowy.", language: "Domyślnie: język Home Assistant.", max_scenes: "Domyślnie 8." },
+};
+/** Langue de l'interface pour l'éditeur (Home Assistant ne lui passe pas toujours hass). */
+const uiLang = () => String(document.querySelector("home-assistant")?.hass?.locale?.language || navigator.language || "fr").slice(0, 2);
 
 // Couleurs proposées pour les ampoules couleur
 const SWATCHES = [[255, 180, 107], [255, 236, 200], [255, 64, 64], [255, 140, 0], [255, 214, 10], [80, 220, 100], [0, 200, 255], [40, 90, 255], [170, 70, 255], [255, 80, 180]];
@@ -143,10 +154,8 @@ class LumieresCard extends HTMLElement {
           { value: "auto", label: "Langue de Home Assistant" }, { value: "fr", label: "Français" },
           { value: "en", label: "English" }, { value: "pl", label: "Polski" }] } } },
       ],
-      computeLabel: (s, data, hass) => {
-        const lang = String(hass?.locale?.language || hass?.language || "fr").slice(0, 2);
-        return (EDITOR_LABELS[lang] || EDITOR_LABELS.fr)[s.name] || s.name;
-      },
+      computeLabel: (s) => (EDITOR_LABELS[uiLang()] || EDITOR_LABELS.fr)[s.name] || s.name,
+      computeHelper: (s) => (EDITOR_HELP[uiLang()] || EDITOR_HELP.fr)[s.name],
     };
   }
 
