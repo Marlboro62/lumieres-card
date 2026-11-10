@@ -116,7 +116,7 @@ scenes:
 
 - Les lumières **masquées** dans Home Assistant et celles qui servent de réglage (catégorie « configuration » ou « diagnostic ») ne sont pas affichées.
 - Une lumière sans pièce apparaît dans **Autres lumières**, en bas de la carte.
-- Le nom de la pièce est retiré du nom de la lumière (« Salon Lampadaire » devient « Lampadaire » dans la pièce Salon).
+- Les noms sont raccourcis : le nom de la pièce et le mot « Lumière » sont retirés (« Lumière Salon Centre » devient « Centre » dans la pièce Salon). Si rien ne reste, le nom complet est gardé.
 - Un **groupe de lumières** apparaît comme une lumière ; masquez avec `exclude` le groupe ou ses membres pour éviter les doublons.
 
 ## Historique des versions
