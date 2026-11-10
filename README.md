@@ -39,6 +39,7 @@
 - **Blanc et couleur** : le bouton 🎨 ouvre un curseur blanc chaud ↔ froid et dix couleurs, selon ce que permet l'ampoule.
 - **Scènes** : vos scènes Home Assistant en boutons, en un clic.
 - La couleur de chaque ampoule allumée teinte son icône, son curseur et sa ligne.
+- **Deux affichages** : en **liste** (curseurs et couleurs directement dans la carte) ou en **boutons** (une tuile par lumière : un appui allume ou éteint, un appui long ouvre la fiche avec luminosité et couleur).
 - **Aucune dépendance** : pas de button-card ni de card-mod. Éditeur visuel compris.
 - **Français, anglais et polonais** (langue de Home Assistant, ou au choix).
 
@@ -46,7 +47,9 @@
 | --- | --- | --- |
 | <img src="https://raw.githubusercontent.com/Marlboro62/lumieres-card/main/images/soiree.png" alt="Soirée" width="300"> | <img src="https://raw.githubusercontent.com/Marlboro62/lumieres-card/main/images/palette.png" alt="Blanc et couleurs" width="300"> | <img src="https://raw.githubusercontent.com/Marlboro62/lumieres-card/main/images/clair.png" alt="Clair" width="300"> |
 
-<img src="https://raw.githubusercontent.com/Marlboro62/lumieres-card/main/images/tablette.png" alt="Sur tablette ou PC : deux colonnes" width="620">
+| Affichage en boutons (`layout: buttons`) | Sur tablette ou PC |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/Marlboro62/lumieres-card/main/images/boutons.png" alt="Affichage en boutons" width="300"> | <img src="https://raw.githubusercontent.com/Marlboro62/lumieres-card/main/images/tablette.png" alt="Sur tablette ou PC : deux colonnes" width="460"> |
 
 *Aperçus réalisés avec la démo : pièces, lumières et scènes fictives.*
 
@@ -79,6 +82,8 @@ C'est tout : la carte trouve vos lumières et leurs pièces. Elle est aussi dans
 | Bouton 🎨, ou clic sur le nom d'une ampoule couleur | Blanc chaud ↔ froid, couleurs et lien vers la fiche complète |
 | Clic sur le nom d'une autre lumière | Fiche de Home Assistant |
 | Clic sur le nom d'une pièce | Replier ou déplier la pièce (mémorisé dans le navigateur) |
+| Affichage en boutons : appui | Allumer ou éteindre |
+| Affichage en boutons : appui long | Fiche de Home Assistant (luminosité, couleur) |
 
 ### Options
 
@@ -88,6 +93,7 @@ C'est tout : la carte trouve vos lumières et leurs pièces. Elle est aussi dans
 | `icon` | Icône du titre | `mdi:lightbulb-group` |
 | `areas` | Pièces affichées, dans cet ordre (identifiants de zone) | toutes |
 | `exclude` | Lumières à masquer | aucune |
+| `layout` | `list` (liste, curseurs et couleurs) ou `buttons` (une tuile par lumière) | `list` |
 | `show_off` | Afficher les lumières éteintes | `true` |
 | `show_scenes` | Afficher les scènes | `true` |
 | `scenes` | Scènes affichées, dans cet ordre | toutes (celles des pièces choisies avec `areas`) |

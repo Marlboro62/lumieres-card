@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.2";
+const CARD_VERSION = "0.1.0-beta.3";
 
 const DEFAULTS = {
   title: "",
@@ -15,6 +15,7 @@ const DEFAULTS = {
   exclude: [],
   show_off: true,
   show_scenes: true,
+  layout: "list",
   scenes: [],
   max_scenes: 8,
   theme: "v2",
@@ -30,7 +31,7 @@ const I18N = {
     room_count: "{on}/{n}", other_room: "Autres lumières", scenes: "Scènes", brightness: "Luminosité",
     white: "Blanc", warm: "Chaud", cold: "Froid", color: "Couleur", details: "Plus de réglages", more: "Fiche complète",
     none: "Aucune lumière trouvée", none_hint: "Ajoutez des lumières dans Home Assistant, ou vérifiez les options areas et exclude de la carte.",
-    toggle: "Allumer ou éteindre", collapse: "Replier ou déplier la pièce", scene_on: "Scène « {s} » activée",
+    toggle: "Allumer ou éteindre", hold: "Appui : allumer ou éteindre ; appui long : luminosité et couleur", collapse: "Replier ou déplier la pièce", scene_on: "Scène « {s} » activée",
   },
   en: {
     title: "Lights", all_off: "Turn all off", room_off: "Turn off", off: "Off", on: "On", unavailable: "Unavailable",
@@ -38,7 +39,7 @@ const I18N = {
     room_count: "{on}/{n}", other_room: "Other lights", scenes: "Scenes", brightness: "Brightness",
     white: "White", warm: "Warm", cold: "Cool", color: "Colour", details: "More settings", more: "Full details",
     none: "No lights found", none_hint: "Add lights to Home Assistant, or check the card's areas and exclude options.",
-    toggle: "Turn on or off", collapse: "Collapse or expand the room", scene_on: "Scene “{s}” activated",
+    toggle: "Turn on or off", hold: "Tap: turn on or off; long press: brightness and colour", collapse: "Collapse or expand the room", scene_on: "Scene “{s}” activated",
   },
   pl: {
     title: "Światła", all_off: "Wyłącz wszystko", room_off: "Wyłącz", off: "Wyłączone", on: "Włączone", unavailable: "Niedostępne",
@@ -46,19 +47,19 @@ const I18N = {
     none_on: "Wszystko wyłączone", room_count: "{on}/{n}", other_room: "Inne światła", scenes: "Sceny", brightness: "Jasność",
     white: "Biel", warm: "Ciepła", cold: "Zimna", color: "Kolor", details: "Więcej ustawień", more: "Szczegóły",
     none: "Nie znaleziono świateł", none_hint: "Dodaj światła w Home Assistant lub sprawdź opcje areas i exclude karty.",
-    toggle: "Włącz lub wyłącz", collapse: "Zwiń lub rozwiń pomieszczenie", scene_on: "Scena „{s}” włączona",
+    toggle: "Włącz lub wyłącz", hold: "Dotknij: włącz lub wyłącz; przytrzymaj: jasność i kolor", collapse: "Zwiń lub rozwiń pomieszczenie", scene_on: "Scena „{s}” włączona",
   },
 };
 
 const EDITOR_LABELS = {
   fr: { title: "Titre (Lumières par défaut)", icon: "Icône", areas: "Pièces affichées (toutes si vide)", exclude: "Lumières à masquer",
-    show_off: "Afficher les lumières éteintes", show_scenes: "Afficher les scènes", scenes: "Scènes (toutes si vide)",
+    layout: "Affichage", show_off: "Afficher les lumières éteintes", show_scenes: "Afficher les scènes", scenes: "Scènes (toutes si vide)",
     max_scenes: "Nombre de scènes au maximum", theme: "Couleurs de la carte", language: "Langue" },
   en: { title: "Title (Lights by default)", icon: "Icon", areas: "Rooms shown (all if empty)", exclude: "Lights to hide",
-    show_off: "Show lights that are off", show_scenes: "Show scenes", scenes: "Scenes (all if empty)",
+    layout: "Layout", show_off: "Show lights that are off", show_scenes: "Show scenes", scenes: "Scenes (all if empty)",
     max_scenes: "Maximum number of scenes", theme: "Card colours", language: "Language" },
   pl: { title: "Tytuł (domyślnie Światła)", icon: "Ikona", areas: "Pokazane pomieszczenia (wszystkie, jeśli puste)", exclude: "Ukryte światła",
-    show_off: "Pokaż wyłączone światła", show_scenes: "Pokaż sceny", scenes: "Sceny (wszystkie, jeśli puste)",
+    layout: "Układ", show_off: "Pokaż wyłączone światła", show_scenes: "Pokaż sceny", scenes: "Sceny (wszystkie, jeśli puste)",
     max_scenes: "Maksymalna liczba scen", theme: "Kolory karty", language: "Język" },
 };
 
@@ -132,6 +133,8 @@ class LumieresCard extends HTMLElement {
         ] },
         { name: "scenes", selector: { entity: { multiple: true, filter: { domain: "scene" } } } },
         { name: "max_scenes", selector: { number: { min: 1, max: 30, mode: "box" } } },
+        { name: "layout", selector: { select: { mode: "dropdown", options: [
+          { value: "list", label: "Liste (curseurs, couleurs)" }, { value: "buttons", label: "Boutons (appui long : fiche)" }] } } },
         { name: "theme", selector: { select: { mode: "dropdown", options: [
           { value: "v2", label: "Bleu nuit (style MyElectricalData)" },
           { value: "auto", label: "Bleu nuit, clair si Home Assistant est en mode clair" },
@@ -179,6 +182,7 @@ class LumieresCard extends HTMLElement {
     this._collapsed = new Set(store.get("lumieres-card:collapsed", []));
     const root = this.shadowRoot;
     root.addEventListener("click", (ev) => {
+      if (this._held) { this._held = false; ev.stopPropagation(); return; } // appui long : la fiche est déjà ouverte
       const el = ev.target.closest?.("[data-act]");
       if (!el) return;
       const { act, id } = el.dataset;
@@ -212,6 +216,15 @@ class LumieresCard extends HTMLElement {
       if (r.dataset.kind === "bri") this._call("light", "turn_on", { entity_id: r.dataset.id, brightness_pct: v });
       else if (r.dataset.kind === "ct") this._call("light", "turn_on", { entity_id: r.dataset.id, color_temp_kelvin: v });
     });
+    // appui long sur un bouton (affichage « boutons ») : fiche de Home Assistant
+    root.addEventListener("pointerdown", (ev) => {
+      clearTimeout(this._holdTimer);
+      this._held = false;
+      const el = ev.target.closest?.("[data-hold]");
+      if (el) this._holdTimer = setTimeout(() => { this._held = true; this._moreInfo(el.dataset.hold); }, 550);
+    });
+    for (const t of ["pointerup", "pointercancel", "pointerleave"]) root.addEventListener(t, () => clearTimeout(this._holdTimer), true);
+    root.addEventListener("contextmenu", (ev) => { if (ev.target.closest?.("[data-hold]")) ev.preventDefault(); });
     root.addEventListener("keydown", (ev) => {
       if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches?.("[data-act]:not(button)")) { ev.preventDefault(); ev.target.click(); }
     });
@@ -382,8 +395,28 @@ class LumieresCard extends HTMLElement {
         </div>
         ${on.length ? `<button class="lc-roff" data-act="off" data-ids="${esc(JSON.stringify(on))}">${esc(T.room_off)}</button>` : ""}
       </div>
-      ${closed ? "" : `<div class="lc-list">${shown.map((id) => this._light(id)).join("")}</div>`}
+      ${closed ? "" : c.layout === "buttons"
+        ? `<div class="lc-grid">${shown.map((id) => this._tile(id)).join("")}</div>`
+        : `<div class="lc-list">${shown.map((id) => this._light(id)).join("")}</div>`}
     </section>`;
+  }
+
+  /** Affichage « boutons » : un appui allume ou éteint, un appui long ouvre la fiche (luminosité, couleur). */
+  _tile(id) {
+    const T = this._t();
+    const s = this._hass.states[id], a = s.attributes || {};
+    const on = s.state === "on", off = s.state === "off";
+    const dimmable = (a.supported_color_modes || []).some((m) => DIMMABLE.has(m));
+    const pct = on && a.brightness != null ? Math.max(1, Math.round((a.brightness / 255) * 100)) : 100;
+    const tint = on ? (a.color_mode === "color_temp" && a.color_temp_kelvin ? kelvinCss(a.color_temp_kelvin) : rgbCss(a.rgb_color) || "#f7c948") : null;
+    const state = on ? (dimmable ? `${pct} %` : T.on) : off ? T.off : T.unavailable;
+    const icon = a.icon || (on ? "mdi:lightbulb-on" : "mdi:lightbulb-outline");
+    const act = on || off ? ` data-act="toggle" data-id="${esc(id)}" role="switch" aria-checked="${on}" tabindex="0"` : "";
+    return `<div class="lc-bt lc-light${on ? " on" : ""}${on || off ? "" : " na"}"${tint ? ` style="--tint:${tint}"` : ""}${act} data-hold="${esc(id)}" title="${esc(T.hold)}">
+      <ha-icon icon="${esc(icon)}"></ha-icon>
+      <b>${esc(this._name(id))}</b>
+      <span>${esc(state)}</span>
+    </div>`;
   }
 
   _light(id) {
@@ -524,6 +557,19 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 .lc-link ha-icon { --mdc-icon-size: 16px; }
 .empty { display: flex; flex-direction: column; gap: 6px; padding: 8px 4px 4px; font-size: .88rem; }
 .empty span { color: var(--med-muted); }
+.lc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; margin-top: 6px; }
+.lc-bt { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; min-height: 96px;
+  padding: 12px 8px; border-radius: 14px; border: 1px solid var(--med-line); cursor: pointer; user-select: none; -webkit-user-select: none;
+  -webkit-touch-callout: none; transition: border-color .2s, background .2s; }
+.lc-bt:hover { border-color: color-mix(in srgb, var(--ink, var(--lc-warm)) 50%, var(--med-line)); }
+.lc-bt:focus-visible { outline: 2px solid var(--med-accent); outline-offset: 2px; }
+.lc-bt ha-icon { --mdc-icon-size: 26px; color: var(--med-muted); }
+.lc-bt b { font-size: .84rem; font-weight: 600; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.lc-bt span { font-size: .78rem; color: var(--med-muted); font-weight: 600; }
+.lc-bt.on ha-icon { color: var(--ink); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tint, var(--lc-warm)) 60%, transparent)); }
+ha-card.light .lc-bt.on ha-icon, ha-card.th-ha.light .lc-bt.on ha-icon { filter: none; }
+.lc-bt.on span { color: var(--ink); }
+.lc-bt.na { cursor: default; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>`;
 
