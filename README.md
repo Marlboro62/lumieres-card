@@ -95,6 +95,7 @@ C'est tout : la carte trouve vos lumières et leurs pièces. Elle est aussi dans
 | `areas` | Pièces affichées, dans cet ordre (identifiants de zone) | toutes |
 | `exclude` | Lumières à masquer | aucune |
 | `layout` | `list` (liste, curseurs et couleurs) ou `buttons` (une tuile par lumière) | `list` |
+| `show_header` | En-tête avec titre et icône ; `false` : une ligne discrète (lumières allumées, Tout éteindre), pour poser la carte sous une autre | `true` |
 | `show_off` | Afficher les lumières éteintes | `true` |
 | `show_scenes` | Afficher les scènes | `true` |
 | `scenes` | Scènes affichées, dans cet ordre | toutes (celles des pièces choisies avec `areas`) |

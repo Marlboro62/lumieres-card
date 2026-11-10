@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.6";
+const CARD_VERSION = "0.1.0-beta.7";
 
 const DEFAULTS = {
   title: "",
@@ -16,6 +16,7 @@ const DEFAULTS = {
   show_off: true,
   show_scenes: true,
   layout: "list",
+  show_header: true,
   scenes: [],
   max_scenes: 8,
   theme: "v2",
@@ -53,23 +54,26 @@ const I18N = {
 
 const EDITOR_LABELS = {
   fr: { title: "Titre (Lumières par défaut)", icon: "Icône", areas: "Pièces affichées (toutes si vide)", exclude: "Lumières à masquer",
-    layout: "Affichage", show_off: "Afficher les lumières éteintes", show_scenes: "Afficher les scènes", scenes: "Scènes (toutes si vide)",
+    layout: "Affichage", show_header: "Afficher l'en-tête (titre et icône)", show_off: "Afficher les lumières éteintes", show_scenes: "Afficher les scènes", scenes: "Scènes (toutes si vide)",
     max_scenes: "Nombre de scènes au maximum", theme: "Couleurs de la carte", language: "Langue" },
   en: { title: "Title (Lights by default)", icon: "Icon", areas: "Rooms shown (all if empty)", exclude: "Lights to hide",
-    layout: "Layout", show_off: "Show lights that are off", show_scenes: "Show scenes", scenes: "Scenes (all if empty)",
+    layout: "Layout", show_header: "Show the header (title and icon)", show_off: "Show lights that are off", show_scenes: "Show scenes", scenes: "Scenes (all if empty)",
     max_scenes: "Maximum number of scenes", theme: "Card colours", language: "Language" },
   pl: { title: "Tytuł (domyślnie Światła)", icon: "Ikona", areas: "Pokazane pomieszczenia (wszystkie, jeśli puste)", exclude: "Ukryte światła",
-    layout: "Układ", show_off: "Pokaż wyłączone światła", show_scenes: "Pokaż sceny", scenes: "Sceny (wszystkie, jeśli puste)",
+    layout: "Układ", show_header: "Pokaż nagłówek (tytuł i ikona)", show_off: "Pokaż wyłączone światła", show_scenes: "Pokaż sceny", scenes: "Sceny (wszystkie, jeśli puste)",
     max_scenes: "Maksymalna liczba scen", theme: "Kolory karty", language: "Język" },
 };
 
 const EDITOR_HELP = {
   fr: { layout: "Par défaut : liste. Boutons : appui pour allumer ou éteindre, curseur dessous, appui long pour la couleur.",
-    theme: "Par défaut : bleu nuit.", language: "Par défaut : langue de Home Assistant.", max_scenes: "8 par défaut." },
+    theme: "Par défaut : bleu nuit.", language: "Par défaut : langue de Home Assistant.", max_scenes: "8 par défaut.",
+    show_header: "Décoché : une ligne discrète à la place, pour poser la carte sous une autre." },
   en: { layout: "Default: list. Buttons: tap to turn on or off, slider below, long press for colour.",
-    theme: "Default: night blue.", language: "Default: Home Assistant language.", max_scenes: "8 by default." },
+    theme: "Default: night blue.", language: "Default: Home Assistant language.", max_scenes: "8 by default.",
+    show_header: "Unchecked: a discreet line instead, to place the card under another one." },
   pl: { layout: "Domyślnie: lista. Przyciski: dotknij, aby włączyć lub wyłączyć, suwak poniżej, przytrzymaj dla koloru.",
-    theme: "Domyślnie: granatowy.", language: "Domyślnie: język Home Assistant.", max_scenes: "Domyślnie 8." },
+    theme: "Domyślnie: granatowy.", language: "Domyślnie: język Home Assistant.", max_scenes: "Domyślnie 8.",
+    show_header: "Odznaczone: dyskretna linia, aby umieścić kartę pod inną." },
 };
 /** Langue de l'interface pour l'éditeur (Home Assistant ne lui passe pas toujours hass). */
 const uiLang = () => String(document.querySelector("home-assistant")?.hass?.locale?.language || navigator.language || "fr").slice(0, 2);
@@ -149,6 +153,7 @@ class LumieresCard extends HTMLElement {
         { name: "max_scenes", selector: { number: { min: 1, max: 30, mode: "box" } } },
         { name: "layout", selector: { select: { mode: "dropdown", options: [
           { value: "list", label: "Liste (curseurs, couleurs)" }, { value: "buttons", label: "Boutons (appui long : fiche)" }] } } },
+        { name: "show_header", selector: { boolean: {} } },
         { name: "theme", selector: { select: { mode: "dropdown", options: [
           { value: "v2", label: "Bleu nuit (style MyElectricalData)" },
           { value: "auto", label: "Bleu nuit, clair si Home Assistant est en mode clair" },
@@ -370,7 +375,9 @@ class LumieresCard extends HTMLElement {
     this._sig = sig;
 
     const lit = ids.filter((id) => this._hass.states[id].state === "on");
-    const head = `<header>
+    // sans en-tête (show_header: false) : une ligne discrète, pour une carte posée sous une autre
+    const head = c.show_header === false ? `<div class="mini"><span>${esc(lit.length ? this._fmt("n_on", { n: lit.length }) : T.none_on)}</span>
+      ${lit.length ? `<button class="lc-off" data-act="off" data-ids="${esc(JSON.stringify(lit))}"><ha-icon icon="mdi:lightbulb-group-off-outline"></ha-icon>${esc(T.all_off)}</button>` : ""}</div>` : `<header>
       <div class="brand"><span class="logo${lit.length ? " on" : ""}"><ha-icon icon="${esc(c.icon || DEFAULTS.icon)}"></ha-icon></span>
         <div><div class="title">${esc(c.title || T.title)}</div>
         <div class="sub">${esc(lit.length ? this._fmt("n_on", { n: lit.length }) : T.none_on)}</div></div></div>
@@ -501,6 +508,8 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 .logo.on { background: color-mix(in srgb, var(--lc-warm) 20%, transparent); }
 .logo.on ha-icon { color: var(--lc-warm); }
 .title { font-size: 1.12rem; font-weight: 700; }
+.mini { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px; padding: 10px 14px 8px; font-size: .78rem; color: var(--med-muted); }
+.mini .lc-off { padding: 4px 10px; font-size: .76rem; }
 .sub { font-size: .78rem; color: var(--med-muted); }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, [role=button]:focus-visible, input:focus-visible { outline: 2px solid var(--med-accent); outline-offset: 2px; }
