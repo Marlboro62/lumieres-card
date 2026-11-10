@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.8";
+const CARD_VERSION = "0.1.0-beta.9";
 
 const DEFAULTS = {
   title: "",
@@ -152,7 +152,7 @@ class LumieresCard extends HTMLElement {
         { name: "scenes", selector: { entity: { multiple: true, filter: { domain: "scene" } } } },
         { name: "max_scenes", selector: { number: { min: 1, max: 30, mode: "box" } } },
         { name: "layout", selector: { select: { mode: "dropdown", options: [
-          { value: "list", label: "Liste (curseurs, couleurs)" }, { value: "buttons", label: "Boutons (appui long : fiche)" }] } } },
+          { value: "list", label: "Liste" }, { value: "buttons", label: "Boutons" }] } } },
         { name: "show_header", selector: { boolean: {} } },
         { name: "theme", selector: { select: { mode: "dropdown", options: [
           { value: "v2", label: "Bleu nuit (style MyElectricalData)" },
