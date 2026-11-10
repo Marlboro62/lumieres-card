@@ -6,7 +6,7 @@
  * Sans configuration, la carte trouve seule les lumières et leurs pièces (zones de Home Assistant).
  */
 (() => {
-const CARD_VERSION = "0.1.0-beta.7";
+const CARD_VERSION = "0.1.0-beta.8";
 
 const DEFAULTS = {
   title: "",
@@ -188,7 +188,7 @@ class LumieresCard extends HTMLElement {
   }
 
   getGridOptions() {
-    return { columns: 12, rows: "auto", min_columns: 6 };
+    return { columns: "full", rows: "auto", min_columns: 6 };
   }
 
   /* -------------------------------------------------------- événements */
